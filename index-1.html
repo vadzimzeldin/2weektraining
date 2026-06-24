@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0d0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="КПП">
+  <link rel="manifest" href="manifest.json">
+  <title>Каратэ: подготовка</title>
+  <style>
+    /* ─── TOKENS ─────────────────────────────────────────── */
+    :root {
+      --bg:        #0d0d0f;
+      --surface:   #16161a;
+      --border:    #2a2a30;
+      --muted:     #4a4a55;
+      --text:      #e8e8ec;
+      --sub:       #8888a0;
+      --accent:    #c8a84b;   /* warm amber — belt gold */
+      --accent-d:  #9a7e35;
+      --strength:  #c84b4b;   /* red */
+      --flex:      #4b8ec8;   /* steel blue */
+      --endur:     #4bc87a;   /* green */
+      --rest:      #4a4a55;
+
+      --r:         8px;
+      --r-lg:      16px;
+
+      --ff-display: 'Georgia', 'Times New Roman', serif;
+      --ff-body:    system-ui, -apple-system, sans-serif;
+      --ff-data:    'Courier New', monospace;
+    }
+
+    /* ─── RESET ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ff-body);
+      min-height: 100dvh;
+      overscroll-behavior: none;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── LAYOUT ─────────────────────────────────────────── */
+    #app { display: flex; flex-direction: column; min-height: 100dvh; }
+    .screen { display: none; flex-direction: column; flex: 1; }
+    .screen.active { display: flex; }
+
+    /* ─── HEADER ─────────────────────────────────────────── */
+    .app-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .header-back {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent);
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .header-back:not([data-visible]) { visibility: hidden; }
+    .header-title {
+      flex: 1;
+      font-family: var(--ff-display);
+      font-size: 17px;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+    .header-subtitle { font-size: 11px; color: var(--sub); font-family: var(--ff-body); letter-spacing: 0.04em; text-transform: uppercase; }
+
+    /* ─── HOME SCREEN ────────────────────────────────────── */
+    .home-hero {
+      padding: 28px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-family: var(--ff-data);
+    }
+    .hero-title {
+      font-family: var(--ff-display);
+      font-size: 28px;
+      line-height: 1.15;
+      color: var(--text);
+    }
+    .hero-title em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero-meta {
+      font-size: 13px;
+      color: var(--sub);
+      margin-top: 4px;
+    }
+
+    /* progress ring */
+    .week-ring-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      margin: 0 20px 20px;
+    }
+    .ring-svg { flex-shrink: 0; }
+    .ring-bg { fill: none; stroke: var(--border); stroke-width: 5; }
+    .ring-fill {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 5;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 40px 40px;
+      transition: stroke-dashoffset 0.6s ease;
+    }
+    .ring-center {
+      font-family: var(--ff-display);
+      font-size: 18px;
+      fill: var(--text);
+      dominant-baseline: middle;
+      text-anchor: middle;
+    }
+    .ring-center-sub {
+      font-size: 10px;
+      fill: var(--sub);
+      dominant-baseline: middle;
+      text-anchor: middle;
+    }
+    .ring-info { flex: 1; }
+    .ring-week {
+      font-family: var(--ff-display);
+      font-size: 20px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .ring-theme {
+      font-size: 12px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .ring-days-done { font-size: 13px; color: var(--sub); }
+
+    /* days grid */
+    .section-label {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0 20px;
+      margin-bottom: 10px;
+    }
+    .days-grid {
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+    .day-pill {
+      aspect-ratio: 1;
+      border-radius: var(--r);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      border: 1.5px solid transparent;
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .day-pill-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .day-pill-num { font-family: var(--ff-data); font-size: 13px; font-weight: bold; }
+
+    .day-pill[data-type="strength"] { background: rgba(200,75,75,.15); border-color: rgba(200,75,75,.3); }
+    .day-pill[data-type="flexibility"] { background: rgba(75,142,200,.15); border-color: rgba(75,142,200,.3); }
+    .day-pill[data-type="endurance"] { background: rgba(75,200,122,.15); border-color: rgba(75,200,122,.3); }
+    .day-pill[data-type="rest"] { background: rgba(74,74,85,.15); border-color: rgba(74,74,85,.2); }
+
+    .day-pill[data-type="strength"] .day-pill-label { color: var(--strength); }
+    .day-pill[data-type="flexibility"] .day-pill-label { color: var(--flex); }
+    .day-pill[data-type="endurance"] .day-pill-label { color: var(--endur); }
+    .day-pill[data-type="rest"] .day-pill-label { color: var(--muted); }
+    .day-pill[data-type="strength"] .day-pill-num { color: var(--strength); }
+    .day-pill[data-type="flexibility"] .day-pill-num { color: var(--flex); }
+    .day-pill[data-type="endurance"] .day-pill-num { color: var(--endur); }
+    .day-pill[data-type="rest"] .day-pill-num { color: var(--muted); }
+
+    .day-pill.done::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(200,168,75,.12);
+    }
+    .day-pill.done .day-pill-num::after {
+      content: '✓';
+      position: absolute;
+      top: -3px; right: -5px;
+      font-size: 8px;
+      color: var(--accent);
+    }
+    .day-pill.done .day-pill-num { position: relative; }
+    .day-pill.current {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .day-pill[data-type="rest"]:not(.done):not(.current) { cursor: default; }
+    .day-pill:not([data-type="rest"]) { cursor: pointer; }
+    .day-pill:active:not([data-type="rest"]) { transform: scale(0.94); }
+
+    /* weeks nav */
+    .weeks-nav {
+      padding: 0 20px 24px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .weeks-nav::-webkit-scrollbar { display: none; }
+    .week-chip {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      border: 1.5px solid var(--border);
+      color: var(--sub);
+      background: var(--surface);
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .week-chip.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(200,168,75,.08);
+    }
+
+    /* ─── WORKOUT SCREEN ─────────────────────────────────── */
+    .workout-header-meta {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .type-badge {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: var(--ff-data);
+    }
+    .type-badge.strength { background: rgba(200,75,75,.2); color: var(--strength); }
+    .type-badge.flexibility { background: rgba(75,142,200,.2); color: var(--flex); }
+    .type-badge.endurance { background: rgba(75,200,122,.2); color: var(--endur); }
+
+    .exercise-list {
+      flex: 1;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+    .ex-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 14px 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .ex-card:active { background: #1e1e24; }
+    .ex-card.completed { border-color: var(--accent-d); }
+    .ex-card.completed .ex-name { color: var(--sub); }
+
+    .ex-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .ex-card.completed .ex-check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .ex-check-mark { display: none; font-size: 12px; color: var(--bg); }
+    .ex-card.completed .ex-check-mark { display: block; }
+
+    .ex-content { flex: 1; min-width: 0; }
+    .ex-name {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .ex-params {
+      font-family: var(--ff-data);
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .ex-note { font-size: 12px; color: var(--muted); font-style: italic; }
+    .ex-tip {
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 6px;
+      line-height: 1.4;
+      padding: 8px 10px;
+      background: rgba(200,168,75,.05);
+      border-left: 2px solid var(--accent-d);
+      border-radius: 4px;
+      display: none;
+    }
+    .ex-card.expanded .ex-tip { display: block; }
+
+    /* workout progress bar */
+    .workout-progress {
+      height: 3px;
+      background: var(--border);
+      position: relative;
+    }
+    .workout-progress-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+
+    /* complete button */
+    .workout-footer {
+      padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .btn-complete {
+      width: 100%;
+      padding: 15px;
+      background: var(--accent);
+      color: var(--bg);
+      border-radius: var(--r);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn-complete:disabled { opacity: 0.35; cursor: default; }
+    .btn-complete:not(:disabled):active { background: var(--accent-d); }
+
+    /* ─── TIMER OVERLAY ──────────────────────────────────── */
+    .timer-overlay {
+      position: fixed; inset: 0;
+      background: rgba(13,13,15,.97);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 40px 24px;
+    }
+    .timer-overlay.open { display: flex; }
+
+    .timer-ex-name {
+      font-family: var(--ff-display);
+      font-size: 20px;
+      text-align: center;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .timer-ex-params {
+      font-family: var(--ff-data);
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .timer-ring-wrap { position: relative; width: 200px; height: 200px; }
+    .timer-ring-svg { width: 200px; height: 200px; }
+    .timer-ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+    .timer-ring-arc {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 100px 100px;
+      transition: stroke-dashoffset 1s linear;
+    }
+    .timer-display {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .timer-time {
+      font-family: var(--ff-data);
+      font-size: 52px;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1;
+    }
+    .timer-phase {
+      font-size: 11px;
+      color: var(--sub);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 4px;
+    }
+
+    .timer-set-info {
+      font-size: 14px;
+      color: var(--sub);
+    }
+    .timer-set-info strong { color: var(--accent); font-family: var(--ff-data); }
+
+    .timer-controls { display: flex; gap: 16px; align-items: center; }
+    .btn-timer {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      transition: all 0.15s;
+    }
+    .btn-timer-primary {
+      background: var(--accent);
+      color: var(--bg);
+      width: 72px; height: 72px;
+      font-size: 26px;
+    }
+    .btn-timer-primary:active { background: var(--accent-d); transform: scale(0.95); }
+    .btn-timer-sec {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--sub);
+    }
+    .btn-timer-sec:active { color: var(--text); border-color: var(--muted); }
+
+    .timer-tip {
+      font-size: 13px;
+      color: var(--sub);
+      text-align: center;
+      line-height: 1.5;
+      padding: 12px 16px;
+      background: rgba(200,168,75,.06);
+      border: 1px solid rgba(200,168,75,.15);
+      border-radius: var(--r);
+      max-width: 320px;
+    }
+
+    /* rest phase indicator */
+    .timer-ring-arc.rest-phase { stroke: var(--muted); }
+
+    /* ─── DONE SCREEN ────────────────────────────────────── */
+    .done-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 28px;
+      text-align: center;
+      gap: 16px;
+    }
+    .done-kanji {
+      font-size: 72px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .done-title {
+      font-family: var(--ff-display);
+      font-size: 26px;
+      color: var(--text);
+    }
+    .done-sub { font-size: 15px; color: var(--sub); line-height: 1.5; }
+    .done-stats {
+      display: flex;
+      gap: 20px;
+      margin: 12px 0;
+    }
+    .done-stat {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px;
+    }
+    .done-stat-val {
+      font-family: var(--ff-display);
+      font-size: 28px;
+      color: var(--accent);
+    }
+    .done-stat-lbl { font-size: 11px; color: var(--sub); margin-top: 2px; }
+    .btn-done-home {
+      width: 100%;
+      padding: 15px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      font-size: 15px;
+      margin-top: 8px;
+    }
+    .btn-done-home:active { background: #1e1e24; }
+
+    /* ─── SCROLLBAR ──────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ─── UTILS ──────────────────────────────────────────── */
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── HOME SCREEN ──────────────────────────────────── -->
+  <div class="screen active" id="screen-home">
+    <header class="app-header">
+      <div class="header-back"></div>
+      <div class="header-title">
+        Каратэ: подготовка
+        <div class="header-subtitle">8 недель · ОФП</div>
+      </div>
+    </header>
+
+    <div class="home-hero">
+      <div class="hero-eyebrow" id="hero-eyebrow">Программа подготовки</div>
+      <h1 class="hero-title">Общая<br><em>физическая</em><br>подготовка</h1>
+      <p class="hero-meta" id="hero-meta">Выбери неделю и день для тренировки</p>
+    </div>
+
+    <!-- week progress ring -->
+    <div class="week-ring-wrap" id="week-ring-wrap">
+      <svg class="ring-svg" width="80" height="80" viewBox="0 0 80 80">
+        <circle class="ring-bg" cx="40" cy="40" r="35"/>
+        <circle class="ring-fill" id="ring-fill" cx="40" cy="40" r="35" stroke-dasharray="219.9" stroke-dashoffset="219.9"/>
+        <text class="ring-center" id="ring-pct" x="40" y="37">0%</text>
+        <text class="ring-center-sub" x="40" y="52">прогресс</text>
+      </svg>
+      <div class="ring-info">
+        <div class="ring-theme" id="ring-theme">–</div>
+        <div class="ring-week" id="ring-week">Неделя –</div>
+        <div class="ring-days-done" id="ring-days-done">– тренировок выполнено</div>
+      </div>
+    </div>
+
+    <!-- week chips -->
+    <div class="weeks-nav" id="weeks-nav"></div>
+
+    <!-- days grid -->
+    <div class="section-label" id="days-label">Дни недели</div>
+    <div class="days-grid" id="days-grid"></div>
+  </div>
+
+  <!-- ── WORKOUT SCREEN ───────────────────────────────── -->
+  <div class="screen" id="screen-workout">
+    <header class="app-header">
+      <button class="header-back" id="btn-back" data-visible>‹</button>
+      <div class="header-title">
+        <span id="workout-title">Тренировка</span>
+        <div class="header-subtitle" id="workout-subtitle"></div>
+      </div>
+      <div class="workout-header-meta">
+        <span class="type-badge" id="workout-type-badge"></span>
+      </div>
+    </header>
+    <div class="workout-progress"><div class="workout-progress-fill" id="workout-progress-fill"></div></div>
+    <div class="exercise-list" id="exercise-list"></div>
+    <div class="workout-footer">
+      <button class="btn-complete" id="btn-complete" disabled>Завершить тренировку</button>
+    </div>
+  </div>
+
+  <!-- ── DONE SCREEN ──────────────────────────────────── -->
+  <div class="screen" id="screen-done">
+    <div class="done-screen">
+      <div class="done-kanji" id="done-emoji">🥋</div>
+      <h2 class="done-title" id="done-title">Тренировка завершена</h2>
+      <p class="done-sub" id="done-sub"></p>
+      <div class="done-stats" id="done-stats"></div>
+      <button class="btn-done-home" id="btn-done-home">← Назад к программе</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── TIMER OVERLAY ─────────────────────────────── -->
+<div class="timer-overlay" id="timer-overlay">
+  <div class="timer-ex-name" id="timer-ex-name"></div>
+  <div class="timer-ex-params" id="timer-ex-params"></div>
+
+  <div class="timer-ring-wrap">
+    <svg class="timer-ring-svg" viewBox="0 0 200 200">
+      <circle class="timer-ring-bg" cx="100" cy="100" r="90"/>
+      <circle class="timer-ring-arc" id="timer-ring-arc" cx="100" cy="100" r="90"
+        stroke-dasharray="565.5" stroke-dashoffset="0"/>
+    </svg>
+    <div class="timer-display">
+      <div class="timer-time" id="timer-time">0:00</div>
+      <div class="timer-phase" id="timer-phase">подготовься</div>
+    </div>
+  </div>
+
+  <div class="timer-set-info" id="timer-set-info"></div>
+
+  <div class="timer-controls">
+    <button class="btn-timer btn-timer-sec" id="btn-timer-skip" title="Пропустить">⏭</button>
+    <button class="btn-timer btn-timer-primary" id="btn-timer-play">▶</button>
+    <button class="btn-timer btn-timer-sec" id="btn-timer-close" title="Закрыть">✕</button>
+  </div>
+
+  <div class="timer-tip" id="timer-tip"></div>
+</div>
+
+<script>
+// 8-week program: Strength, Flexibility, Endurance
+// Designed for a sedentary 23yo preparing for karate
+
+const PROGRAM = {
+  weeks: [
+    // WEEKS 1-2: Foundation
+    {
+      week: 1,
+      theme: "Фундамент",
+      days: [
+        {
+          day: 1, type: "strength", label: "Сила",
+          exercises: [
+            { id: "s1", name: "Отжимания (с колен)", sets: 3, reps: 8, rest: 60, tip: "Держи тело прямым от колен до головы. Грудь касается пола." },
+            { id: "s2", name: "Приседания", sets: 3, reps: 10, rest: 60, tip: "Колени над носками, спина прямая, вес на пятках." },
+            { id: "s3", name: "Планка", sets: 3, duration: 20, rest: 45, tip: "Не поднимай таз, не опускай голову. Дыши равномерно." },
+            { id: "s4", name: "Выпады на месте", sets: 2, reps: 8, rest: 60, note: "на каждую ногу", tip: "Заднее колено почти касается пола. Корпус вертикально." },
+            { id: "s5", name: "Гиперэкстензия лёжа", sets: 3, reps: 12, rest: 45, tip: "Лёжа на животе, поднимай грудь и ноги одновременно. Без рывков." },
+          ]
+        },
+        {
+          day: 2, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "f1", name: "Наклон к ногам стоя", sets: 1, duration: 60, rest: 15, tip: "Не сгибай колени. Тянись постепенно, без боли." },
+            { id: "f2", name: "Бабочка сидя", sets: 1, duration: 60, rest: 15, tip: "Пятки вместе, спина прямая, лёгкий наклон вперёд." },
+            { id: "f3", name: "Поза голубя (каждая сторона)", sets: 1, duration: 45, rest: 15, tip: "Бедро передней ноги параллельно полу. Не заваливайся." },
+            { id: "f4", name: "Растяжка сгибателей бедра", sets: 1, duration: 45, rest: 15, tip: "Выпад вперёд, заднее колено на полу. Таз вниз." },
+            { id: "f5", name: "Поперечный полушпагат", sets: 1, duration: 60, rest: 15, tip: "Ноги в стороны, руки в пол перед собой. Без рывков." },
+            { id: "f6", name: "Скручивание позвоночника лёжа", sets: 1, duration: 40, rest: 15, note: "на каждую сторону", tip: "Плечи прижаты к полу. Дыши глубоко." },
+            { id: "f7", name: "Поза ребёнка", sets: 1, duration: 60, rest: 0, tip: "Руки вперёд, лоб на пол. Полное расслабление." },
+          ]
+        },
+        {
+          day: 3, type: "endurance", label: "Выносливость",
+          exercises: [
+            { id: "e1", name: "Ходьба на месте с высоким подъёмом колен", sets: 1, duration: 120, rest: 30, tip: "Темп умеренный. Колени до уровня пояса." },
+            { id: "e2", name: "Jumping jacks (прыжки со взмахом)", sets: 3, duration: 40, rest: 30, tip: "Если тяжело — делай без прыжка, просто шагами." },
+            { id: "e3", name: "Бег на месте", sets: 3, duration: 45, rest: 30, tip: "Лёгкий темп. Можешь немного наклониться вперёд." },
+            { id: "e4", name: "Приседания в темпе", sets: 2, duration: 30, rest: 45, tip: "Не торопись, главное — не сбить дыхание." },
+            { id: "e5", name: "Активное восстановление: ходьба", sets: 1, duration: 180, rest: 0, tip: "Ходи по комнате, глубоко дыши, снижай пульс." },
+          ]
+        },
+        { day: 4, type: "rest", label: "Отдых", exercises: [] },
+        {
+          day: 5, type: "strength", label: "Сила",
+          exercises: [
+            { id: "s6", name: "Отжимания (с колен)", sets: 3, reps: 10, rest: 60, tip: "Те же, что в день 1. Попробуй сделать на 2 повтора больше." },
+            { id: "s7", name: "Стул у стены (изометрика)", sets: 3, duration: 30, rest: 60, tip: "Спина ровно к стене, бёдра параллельны полу. Смотри вперёд." },
+            { id: "s8", name: "Планка боковая", sets: 2, duration: 20, rest: 45, note: "на каждую сторону", tip: "Тело прямое от головы до пят. Опора на предплечье." },
+            { id: "s9", name: "Мост (ягодичный)", sets: 3, reps: 15, rest: 45, tip: "Лёжа на спине, ноги согнуты. Поднимай таз вверх, сжимай ягодицы." },
+            { id: "s10", name: "Скалолаз медленный", sets: 3, reps: 10, rest: 45, note: "на каждую ногу", tip: "Из позиции планки — тяни колено к груди медленно." },
+          ]
+        },
+        {
+          day: 6, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "f8", name: "Кошка-корова (динамика)", sets: 1, reps: 15, rest: 15, tip: "На четвереньках, синхронизируй с дыханием. Медленно." },
+            { id: "f9", name: "Растяжка грудных (дверной проём)", sets: 2, duration: 30, rest: 15, tip: "Рука на косяке, разворачивай корпус. Ощущение в груди." },
+            { id: "f10", name: "Растяжка задней поверхности бедра лёжа", sets: 1, duration: 45, rest: 15, note: "на каждую ногу", tip: "Тяни ногу к себе полотенцем или рукой. Другая нога прямая." },
+            { id: "f11", name: "Продольный полушпагат", sets: 1, duration: 45, rest: 15, note: "на каждую ногу", tip: "Передняя нога прямая, задняя сзади. Таз стремится к полу." },
+            { id: "f12", name: "Наклон к каждой ноге сидя", sets: 1, duration: 40, rest: 15, note: "на каждую ногу", tip: "Ноги вместе вперёд, тянись к пальцам. Потом одна нога в сторону." },
+          ]
+        },
+        { day: 7, type: "rest", label: "Отдых", exercises: [] },
+      ]
+    },
+    // WEEK 2
+    {
+      week: 2,
+      theme: "Фундамент+",
+      days: [
+        {
+          day: 1, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w2s1", name: "Отжимания (стандартные)", sets: 3, reps: 6, rest: 60, tip: "Теперь с прямых рук. Если не получается — вернись к варианту с колен." },
+            { id: "w2s2", name: "Приседания", sets: 3, reps: 12, rest: 60, tip: "+2 к прошлой неделе. Контролируй каждое движение." },
+            { id: "w2s3", name: "Планка", sets: 3, duration: 25, rest: 45, tip: "+5 секунд. Дыши!" },
+            { id: "w2s4", name: "Выпады на месте", sets: 3, reps: 10, rest: 60, note: "на каждую ногу", tip: "Три подхода вместо двух." },
+            { id: "w2s5", name: "Отжимания от стула (обратные)", sets: 3, reps: 8, rest: 60, tip: "Руки на сиденье за спиной, ноги прямо. Опускайся до прямого угла." },
+          ]
+        },
+        {
+          day: 2, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w2f1", name: "Суставная разминка: круги", sets: 1, duration: 90, rest: 0, tip: "Шея, плечи, локти, запястья, тазобедренные, колени, стопы. По 10 кругов." },
+            { id: "w2f2", name: "Бабочка с наклоном", sets: 1, duration: 75, rest: 15, tip: "Из бабочки — наклон вперёд, лоб к пяткам." },
+            { id: "w2f3", name: "Поза голубя (углублённая)", sets: 1, duration: 60, rest: 15, note: "на каждую сторону", tip: "Удерживай дольше, с каждым выдохом опускайся чуть ниже." },
+            { id: "w2f4", name: "Поперечный шпагат (у стены)", sets: 1, duration: 90, rest: 15, tip: "Ноги вдоль стены в стороны, сам лёжа на спине. Гравитация работает за тебя." },
+            { id: "w2f5", name: "Растяжка икр у стены", sets: 1, duration: 40, rest: 15, note: "на каждую ногу", tip: "Нога прямая, пятка в пол, носок на стену. Наклон вперёд." },
+            { id: "w2f6", name: "Поза ребёнка расширенная", sets: 1, duration: 75, rest: 0, tip: "Руки далеко вперёд, опускай грудь к полу." },
+          ]
+        },
+        {
+          day: 3, type: "endurance", label: "Выносливость",
+          exercises: [
+            { id: "w2e1", name: "Разминка: ходьба с подъёмом колен", sets: 1, duration: 120, rest: 30, tip: "Постепенно увеличивай темп." },
+            { id: "w2e2", name: "Jumping jacks", sets: 4, duration: 40, rest: 25, tip: "+1 подход к прошлой неделе." },
+            { id: "w2e3", name: "Бег на месте", sets: 3, duration: 60, rest: 30, tip: "+15 секунд к прошлой неделе." },
+            { id: "w2e4", name: "Burpee облегчённый (без прыжка)", sets: 2, reps: 5, rest: 60, tip: "Из стойки — руки в пол — шагом в планку — шагом обратно — встать. Не торопись." },
+            { id: "w2e5", name: "Восстановление: ходьба", sets: 1, duration: 180, rest: 0, tip: "Снизь пульс, глубокое дыхание." },
+          ]
+        },
+        { day: 4, type: "rest", label: "Отдых", exercises: [] },
+        {
+          day: 5, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w2s6", name: "Отжимания", sets: 4, reps: 6, rest: 60, tip: "Четыре подхода. Если последний — с колен, это нормально." },
+            { id: "w2s7", name: "Стул у стены", sets: 3, duration: 40, rest: 60, tip: "+10 секунд." },
+            { id: "w2s8", name: "Планка боковая", sets: 3, duration: 25, rest: 45, note: "на каждую сторону", tip: "Три подхода." },
+            { id: "w2s9", name: "Мост с удержанием", sets: 3, reps: 12, rest: 45, tip: "Наверху удерживай 2 секунды, медленно опускайся." },
+            { id: "w2s10", name: "Скалолаз", sets: 3, reps: 12, rest: 45, note: "на каждую ногу", tip: "Чуть быстрее, чем в неделю 1." },
+          ]
+        },
+        {
+          day: 6, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w2f7", name: "Динамические выпады (разминка)", sets: 1, reps: 10, rest: 15, note: "на каждую ногу", tip: "Плавно покачивайся в позиции выпада." },
+            { id: "w2f8", name: "Растяжка квадрицепса стоя", sets: 1, duration: 40, rest: 15, note: "на каждую ногу", tip: "Стоя, подтяни пятку к ягодице. Колени вместе." },
+            { id: "w2f9", name: "Продольный полушпагат", sets: 2, duration: 50, rest: 20, note: "на каждую ногу", tip: "Два подхода. Второй должен быть глубже." },
+            { id: "w2f10", name: "Поперечный полушпагат", sets: 2, duration: 60, rest: 20, tip: "Медленно иди глубже с каждым подходом." },
+          ]
+        },
+        { day: 7, type: "rest", label: "Отдых", exercises: [] },
+      ]
+    },
+    // WEEKS 3-4: Development
+    {
+      week: 3,
+      theme: "Развитие",
+      days: [
+        {
+          day: 1, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w3s1", name: "Отжимания", sets: 4, reps: 8, rest: 60, tip: "Наращиваем объём. Все подходы с прямых рук." },
+            { id: "w3s2", name: "Приседания с паузой внизу", sets: 3, reps: 12, rest: 60, tip: "2 секунды внизу. Тяжелее, чем кажется." },
+            { id: "w3s3", name: "Планка", sets: 3, duration: 35, rest: 45, tip: "35 секунд. Дыши носом." },
+            { id: "w3s4", name: "Выпады в движении", sets: 3, reps: 10, rest: 60, note: "на каждую ногу", tip: "Делай шаги вперёд, а не на месте." },
+            { id: "w3s5", name: "Отжимания от стула (обратные)", sets: 3, reps: 10, rest: 60, tip: "Контролируй опускание — 3 секунды вниз." },
+            { id: "w3s6", name: "Супермен", sets: 3, reps: 15, rest: 45, tip: "Руки и ноги одновременно вверх. Удержание 1 сек наверху." },
+          ]
+        },
+        {
+          day: 2, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w3f1", name: "Разминка суставов", sets: 1, duration: 90, rest: 0, tip: "Полный круг: шея, плечи, корпус, бёдра, колени." },
+            { id: "w3f2", name: "Разворот торса сидя", sets: 1, duration: 40, rest: 15, note: "на каждую сторону", tip: "Ноги вперёд, поверни корпус, рука за спину. Смотри назад." },
+            { id: "w3f3", name: "Глубокий выпад с пронацией", sets: 1, duration: 45, rest: 15, note: "на каждую сторону", tip: "Из выпада — рука с той же стороны к полу, открой грудь в небо." },
+            { id: "w3f4", name: "Поперечный шпагат", sets: 2, duration: 75, rest: 20, tip: "С опорой на руки перед собой. Старайся глубже." },
+            { id: "w3f5", name: "Продольный шпагат (у стены)", sets: 1, duration: 60, rest: 20, note: "на каждую сторону", tip: "Опираешься на руки. Таз вниз равномерно." },
+            { id: "w3f6", name: "Поза трупа с осознанным дыханием", sets: 1, duration: 120, rest: 0, tip: "Полностью расслабь тело. Дыши животом. Это тоже тренировка." },
+          ]
+        },
+        {
+          day: 3, type: "endurance", label: "Выносливость",
+          exercises: [
+            { id: "w3e1", name: "Разминка", sets: 1, duration: 120, rest: 30, tip: "Ходьба с подъёмом колен + круги руками." },
+            { id: "w3e2", name: "Интервалы: 30 сек бег / 30 сек ходьба", sets: 5, duration: 60, rest: 0, tip: "5 циклов подряд. 30 сек бег на месте в темпе, потом 30 сек ходьба." },
+            { id: "w3e3", name: "Jumping jacks", sets: 3, duration: 50, rest: 25, tip: "+10 секунд." },
+            { id: "w3e4", name: "Burpee облегчённый", sets: 3, reps: 6, rest: 60, tip: "Три подхода. Темп комфортный." },
+            { id: "w3e5", name: "Восстановление", sets: 1, duration: 180, rest: 0, tip: "Ходьба + глубокое дыхание." },
+          ]
+        },
+        { day: 4, type: "rest", label: "Отдых", exercises: [] },
+        {
+          day: 5, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w3s7", name: "Отжимания широким хватом", sets: 3, reps: 8, rest: 60, tip: "Руки шире плеч. Акцент на грудь." },
+            { id: "w3s8", name: "Отжимания узким хватом", sets: 3, reps: 6, rest: 60, tip: "Руки под плечами, локти вдоль тела. Акцент на трицепс." },
+            { id: "w3s9", name: "Приседания на одной ноге (с опорой)", sets: 3, reps: 6, rest: 60, note: "на каждую ногу", tip: "Держись за стул для баланса. Приседай на одной ноге." },
+            { id: "w3s10", name: "Планка с подъёмом руки", sets: 3, reps: 8, rest: 45, note: "на каждую руку", tip: "В позиции планки — подними одну руку вперёд на 2 секунды." },
+            { id: "w3s11", name: "Мост на одной ноге", sets: 3, reps: 10, rest: 45, note: "на каждую ногу", tip: "Одна нога поднята. Таз вверх на опорной ноге." },
+          ]
+        },
+        {
+          day: 6, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w3f7", name: "Бабочка с пульсирующим давлением", sets: 1, duration: 75, rest: 15, tip: "Мягко нажимай на колени ладонями. 2-3 секунды давления, отпусти." },
+            { id: "w3f8", name: "Поза голубя (долгая)", sets: 1, duration: 75, rest: 15, note: "на каждую сторону", tip: "75 секунд — это немало. Дыши и отпускай напряжение." },
+            { id: "w3f9", name: "Складка сидя с полотенцем", sets: 1, duration: 60, rest: 15, tip: "Обмотай полотенце вокруг стоп, тяни на себя, наклоняйся вперёд." },
+            { id: "w3f10", name: "Поперечный полушпагат", sets: 2, duration: 75, rest: 20, tip: "Каждый раз старайся чуть дальше." },
+          ]
+        },
+        { day: 7, type: "rest", label: "Отдых", exercises: [] },
+      ]
+    },
+    {
+      week: 4,
+      theme: "Развитие+",
+      days: [
+        {
+          day: 1, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w4s1", name: "Отжимания", sets: 4, reps: 10, rest: 60, tip: "40 суммарных повторений. Вот прогресс." },
+            { id: "w4s2", name: "Приседания с паузой", sets: 4, reps: 12, rest: 60, tip: "4 подхода. Если болят колени — проверь постановку стоп." },
+            { id: "w4s3", name: "Планка", sets: 4, duration: 40, rest: 45, tip: "40 секунд × 4. Концентрируйся на животе." },
+            { id: "w4s4", name: "Выпады в движении", sets: 3, reps: 12, rest: 60, note: "на каждую ногу", tip: "24 шага-выпада. Держи ритм." },
+            { id: "w4s5", name: "Пайк-отжимания (уголком)", sets: 3, reps: 8, rest: 60, tip: "Поза перевёрнутой V, руки близко к ногам, опускай голову к полу." },
+          ]
+        },
+        {
+          day: 2, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w4f1", name: "Комплекс Солнечное приветствие (медленно)", sets: 2, reps: 5, rest: 30, tip: "5 медленных циклов. Синхронизируй с дыханием." },
+            { id: "w4f2", name: "Глубокий поперечный шпагат", sets: 2, duration: 90, rest: 20, tip: "Самая долгая удержка до сих пор. Не торопись." },
+            { id: "w4f3", name: "Продольный шпагат", sets: 2, duration: 60, rest: 20, note: "на каждую ногу", tip: "2 подхода на каждую." },
+            { id: "w4f4", name: "Растяжка грудного отдела на полу", sets: 1, duration: 60, rest: 15, tip: "Лёжа на животе, одна рука в сторону — разворачивай корпус." },
+          ]
+        },
+        {
+          day: 3, type: "endurance", label: "Выносливость",
+          exercises: [
+            { id: "w4e1", name: "Разминка", sets: 1, duration: 120, rest: 30, tip: "Ходьба + суставы." },
+            { id: "w4e2", name: "Интервалы 40/20", sets: 6, duration: 60, rest: 0, tip: "40 сек бег, 20 сек ходьба. 6 циклов." },
+            { id: "w4e3", name: "Берпи (с прыжком)", sets: 3, reps: 5, rest: 60, tip: "Теперь с прыжком. Если тяжело — продолжай облегчённый вариант." },
+            { id: "w4e4", name: "Скалолаз в темпе", sets: 3, duration: 30, rest: 45, tip: "Быстро, как будто горит." },
+            { id: "w4e5", name: "Восстановление", sets: 1, duration: 180, rest: 0, tip: "Ходьба." },
+          ]
+        },
+        { day: 4, type: "rest", label: "Отдых", exercises: [] },
+        {
+          day: 5, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w4s6", name: "Отжимания (макс за 3 подхода)", sets: 3, reps: 0, rest: 90, isMax: true, tip: "Делай до отказа. Запомни число — будешь сравнивать через месяц." },
+            { id: "w4s7", name: "Приседания на одной ноге", sets: 3, reps: 8, rest: 60, note: "на каждую ногу", tip: "Уже без опоры, если получается. Руки вперёд для баланса." },
+            { id: "w4s8", name: "Планка боковая динамическая", sets: 3, reps: 10, rest: 45, note: "на каждую сторону", tip: "Из боковой планки — опускай таз вниз и поднимай обратно." },
+            { id: "w4s9", name: "Мост с маршем ног", sets: 3, reps: 10, rest: 45, tip: "В позиции моста поочерёдно поднимай колени к груди." },
+          ]
+        },
+        {
+          day: 6, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w4f5", name: "Полный комплекс: суставная гимнастика", sets: 1, duration: 120, rest: 0, tip: "Сверху вниз: шея, плечи, поясница, бёдра, колени, голеностоп." },
+            { id: "w4f6", name: "Поперечный шпагат (максимум)", sets: 2, duration: 90, rest: 30, tip: "Иди максимально глубоко. Зафиксируй — будешь сравнивать в неделю 8." },
+            { id: "w4f7", name: "Продольный шпагат (максимум)", sets: 2, duration: 60, rest: 20, note: "на каждую ногу", tip: "Так же — фиксируй ощущения." },
+          ]
+        },
+        { day: 7, type: "rest", label: "Отдых", exercises: [] },
+      ]
+    },
+    // WEEKS 5-6: Intensification
+    {
+      week: 5,
+      theme: "Интенсивность",
+      days: [
+        {
+          day: 1, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w5s1", name: "Отжимания (3-1-2)", sets: 4, reps: 8, rest: 75, tip: "3 сек вниз, 1 сек пауза внизу, 2 сек вверх. Это темп, не скорость." },
+            { id: "w5s2", name: "Пистолет (с опорой)", sets: 3, reps: 8, rest: 75, note: "на каждую ногу", tip: "Присед на одной ноге, держась за стул. Переходный вариант к полному пистолету." },
+            { id: "w5s3", name: "Планка с альпинистом", sets: 3, duration: 45, rest: 45, tip: "В планке поочерёдно тяни колено к плечу того же бока." },
+            { id: "w5s4", name: "Прыжки из приседа", sets: 3, reps: 8, rest: 75, tip: "Присел — взрывной прыжок вверх — мягкое приземление. Для взрывной силы ног." },
+            { id: "w5s5", name: "Обратные отжимания от стула", sets: 3, reps: 12, rest: 60, tip: "3 подхода по 12. Должно гореть." },
+          ]
+        },
+        {
+          day: 2, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w5f1", name: "Динамическая разминка: мельница", sets: 1, reps: 15, rest: 15, note: "на каждую сторону", tip: "Стоя, наклон, рукой к противоположной ноге. Без остановки." },
+            { id: "w5f2", name: "Глубокий выпад с вращением", sets: 1, reps: 8, rest: 15, note: "на каждую сторону", tip: "Из выпада — рука вверх, открой корпус, смотри в небо." },
+            { id: "w5f3", name: "Поперечный шпагат (активная работа)", sets: 3, duration: 90, rest: 20, tip: "В растяжке медленно нажимай ногами в пол — это активирует мышцы и углубляет." },
+            { id: "w5f4", name: "Продольный шпагат с блоком", sets: 2, duration: 75, rest: 20, note: "на каждую ногу", tip: "Опирайся на книги или блоки под руками. Таз равномерно вниз." },
+            { id: "w5f5", name: "Поза моста (прогиб назад)", sets: 1, duration: 30, rest: 30, tip: "Лёжа на спине, руки у ушей, оттолкнись вверх. Если не получается — не форсируй." },
+          ]
+        },
+        {
+          day: 3, type: "endurance", label: "Выносливость",
+          exercises: [
+            { id: "w5e1", name: "Табата: jumping jacks", sets: 8, duration: 20, rest: 10, tip: "8 × (20 сек максимально / 10 сек отдых). Это один раунд Табаты." },
+            { id: "w5e2", name: "Отдых 2 минуты", sets: 1, duration: 120, rest: 0, tip: "Восстановись." },
+            { id: "w5e3", name: "Табата: бег на месте", sets: 8, duration: 20, rest: 10, tip: "Ещё один раунд Табаты. Начинай в умеренном темпе." },
+            { id: "w5e4", name: "Берпи", sets: 3, reps: 8, rest: 75, tip: "С прыжком. Следи за дыханием." },
+            { id: "w5e5", name: "Восстановление", sets: 1, duration: 180, rest: 0, tip: "Ходьба, глубокое дыхание." },
+          ]
+        },
+        { day: 4, type: "rest", label: "Отдых", exercises: [] },
+        {
+          day: 5, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w5s6", name: "Отжимания с хлопком", sets: 3, reps: 5, rest: 90, tip: "Взрывное отжимание — в верхней точке хлопок. Не обязательно высоко." },
+            { id: "w5s7", name: "Болгарский сплит-присед", sets: 3, reps: 8, rest: 75, note: "на каждую ногу", tip: "Задняя нога на стуле или диване. Передняя нога работает." },
+            { id: "w5s8", name: "Планка", sets: 4, duration: 50, rest: 45, tip: "50 секунд × 4." },
+            { id: "w5s9", name: "Скалолаз в максимальном темпе", sets: 4, duration: 30, rest: 30, tip: "4 × 30 сек на максимуме. Отдых между подходами 30 сек." },
+          ]
+        },
+        {
+          day: 6, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w5f6", name: "Шпагат: поперечный (максимум)", sets: 2, duration: 120, rest: 30, tip: "2 минуты. Используй дыхание — каждый выдох = на 1 мм глубже." },
+            { id: "w5f7", name: "Шпагат: продольный", sets: 2, duration: 90, rest: 20, note: "на каждую ногу", tip: "Полтора минуты на каждую сторону." },
+            { id: "w5f8", name: "Растяжка поясницы: поза ребёнка", sets: 1, duration: 90, rest: 0, tip: "Заслуженный отдых." },
+          ]
+        },
+        { day: 7, type: "rest", label: "Отдых", exercises: [] },
+      ]
+    },
+    {
+      week: 6,
+      theme: "Интенсивность+",
+      days: [
+        {
+          day: 1, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w6s1", name: "Отжимания (3-1-2)", sets: 5, reps: 8, rest: 75, tip: "Пять подходов. Темп тот же." },
+            { id: "w6s2", name: "Болгарский присед", sets: 4, reps: 10, rest: 75, note: "на каждую ногу", tip: "Главное упражнение недели. 80 суммарных повторений." },
+            { id: "w6s3", name: "Планка с подъёмом ноги", sets: 4, reps: 10, rest: 45, note: "на каждую ногу", tip: "В планке — подними ногу и удержи 2 сек. Не разворачивай таз." },
+            { id: "w6s4", name: "Прыжки из приседа", sets: 4, reps: 10, rest: 75, tip: "Взрывная сила. Мягкое приземление." },
+            { id: "w6s5", name: "Пайк-отжимания", sets: 3, reps: 12, rest: 60, tip: "Уголком. Плечи." },
+          ]
+        },
+        {
+          day: 2, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w6f1", name: "Динамическая разминка: зашагивания, выпады, мельница", sets: 1, duration: 120, rest: 0, tip: "Всё вместе, плавно." },
+            { id: "w6f2", name: "Поперечный шпагат активный", sets: 3, duration: 120, rest: 20, tip: "Самый долгий до сих пор. Активируй мышцы внутри растяжки." },
+            { id: "w6f3", name: "Продольный шпагат", sets: 2, duration: 90, rest: 20, note: "на каждую ногу", tip: "Полтора минуты каждая сторона." },
+            { id: "w6f4", name: "Поза ребёнка + скручивание", sets: 1, duration: 90, rest: 0, tip: "Из позы ребёнка — одну руку протяни под телом в другую сторону." },
+          ]
+        },
+        {
+          day: 3, type: "endurance", label: "Выносливость",
+          exercises: [
+            { id: "w6e1", name: "Табата × 3 раунда", sets: 8, duration: 20, rest: 10, tip: "3 раунда табаты: берпи / скалолаз / jumping jacks. По 8 × (20/10)." },
+            { id: "w6e2", name: "Отдых между раундами", sets: 2, duration: 90, rest: 0, tip: "90 секунд отдыха между раундами." },
+            { id: "w6e3", name: "Финальное восстановление", sets: 1, duration: 180, rest: 0, tip: "Ходьба. Молодец." },
+          ]
+        },
+        { day: 4, type: "rest", label: "Отдых", exercises: [] },
+        {
+          day: 5, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w6s6", name: "Максимальные отжимания", sets: 3, reps: 0, rest: 120, isMax: true, tip: "До отказа. Сравни с неделей 4 — разница очевидна." },
+            { id: "w6s7", name: "Пистолет", sets: 3, reps: 6, rest: 90, note: "на каждую ногу", tip: "Без опоры, если получается. С опорой — без стыда." },
+            { id: "w6s8", name: "Планка комбо", sets: 3, duration: 60, rest: 45, tip: "20 сек прямая, 20 сек боковая левая, 20 сек боковая правая = 1 подход." },
+            { id: "w6s9", name: "Скалолаз максимум", sets: 5, duration: 30, rest: 30, tip: "5 × 30 сек." },
+          ]
+        },
+        {
+          day: 6, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w6f5", name: "Полный комплекс шпагатов", sets: 3, duration: 90, rest: 20, note: "поперечный + продольный каждая сторона", tip: "Три прогона. Это уже серьёзный объём." },
+            { id: "w6f6", name: "Расслабление: поза трупа", sets: 1, duration: 180, rest: 0, tip: "3 минуты полного расслабления. Заслуженно." },
+          ]
+        },
+        { day: 7, type: "rest", label: "Отдых", exercises: [] },
+      ]
+    },
+    // WEEKS 7-8: Peak
+    {
+      week: 7,
+      theme: "Пик",
+      days: [
+        {
+          day: 1, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w7s1", name: "Отжимания с хлопком", sets: 4, reps: 6, rest: 90, tip: "Взрывная работа." },
+            { id: "w7s2", name: "Болгарский присед (медленный)", sets: 4, reps: 10, rest: 90, note: "на каждую ногу", tip: "4 сек вниз, 1 сек пауза, 2 сек вверх." },
+            { id: "w7s3", name: "Отжимания от пола (ноги на стуле)", sets: 3, reps: 8, rest: 75, tip: "Ноги подняты — акцент на верхней части груди и плечах." },
+            { id: "w7s4", name: "Прыжки из приседа на дальность", sets: 3, reps: 6, rest: 90, tip: "Прыгай вперёд-вверх максимально. Каратэ — взрывная дисциплина." },
+            { id: "w7s5", name: "Мост на одной ноге (серия)", sets: 4, reps: 12, rest: 45, note: "на каждую ногу", tip: "Ягодичные и подколенные — основа стойки." },
+          ]
+        },
+        {
+          day: 2, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w7f1", name: "Динамическая разминка: полный круг", sets: 1, duration: 150, rest: 0, tip: "Всё, что знаешь — суставы, выпады, мельница, подъёмы ног." },
+            { id: "w7f2", name: "Поперечный шпагат (рекорд)", sets: 2, duration: 150, rest: 30, tip: "2.5 минуты. Это твой рекорд на сегодня." },
+            { id: "w7f3", name: "Продольный шпагат (рекорд)", sets: 2, duration: 120, rest: 30, note: "на каждую ногу", tip: "2 минуты каждая. Ощути прогресс за 7 недель." },
+            { id: "w7f4", name: "Расслабление", sets: 1, duration: 120, rest: 0, tip: "Полное расслабление." },
+          ]
+        },
+        {
+          day: 3, type: "endurance", label: "Выносливость",
+          exercises: [
+            { id: "w7e1", name: "AMRAP 10 минут: берпи + приседания + скалолаз", sets: 1, duration: 600, rest: 0, tip: "AMRAP = столько раундов, сколько успеешь за 10 мин. 1 раунд = 3 берпи + 5 приседаний + 10 скалолазов (каждой ногой). Запомни количество раундов." },
+            { id: "w7e2", name: "Активное восстановление", sets: 1, duration: 300, rest: 0, tip: "5 минут ходьбы." },
+          ]
+        },
+        { day: 4, type: "rest", label: "Отдых", exercises: [] },
+        {
+          day: 5, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w7s6", name: "Круговая тренировка × 4", sets: 4, duration: 60, rest: 30, tip: "1 раунд: 8 отжиманий + 10 приседаний + 15 мостов + 30 сек планки. Отдых 30 сек." },
+            { id: "w7s7", name: "Пистолет без опоры", sets: 3, reps: 8, rest: 90, note: "на каждую ногу", tip: "8 на каждую — ты в хорошей форме, если добрался сюда." },
+          ]
+        },
+        {
+          day: 6, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w7f5", name: "Полный комплекс растяжки (медленно)", sets: 1, duration: 1200, rest: 0, tip: "20 минут. Всё, что ты знаешь. Это не тренировка — это медитация." },
+          ]
+        },
+        { day: 7, type: "rest", label: "Отдых", exercises: [] },
+      ]
+    },
+    {
+      week: 8,
+      theme: "Финал",
+      days: [
+        {
+          day: 1, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w8s1", name: "Отжимания (максимум за подход)", sets: 3, reps: 0, rest: 120, isMax: true, tip: "Финальный тест. Сравни с неделями 4 и 6." },
+            { id: "w8s2", name: "Болгарский присед", sets: 4, reps: 12, rest: 75, note: "на каждую ногу", tip: "Последняя тяжёлая неделя." },
+            { id: "w8s3", name: "Планка (максимальное время)", sets: 2, reps: 0, rest: 90, isMax: true, tip: "Сколько выдержишь — записывай." },
+            { id: "w8s4", name: "Прыжки из приседа", sets: 4, reps: 10, rest: 60, tip: "40 взрывных повторений." },
+          ]
+        },
+        {
+          day: 2, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w8f1", name: "Финальный тест: поперечный шпагат", sets: 1, duration: 180, rest: 30, tip: "3 минуты. Запомни своё положение — ты ушёл далеко от старта." },
+            { id: "w8f2", name: "Финальный тест: продольный шпагат", sets: 1, duration: 120, rest: 30, note: "на каждую ногу", tip: "2 минуты каждая." },
+            { id: "w8f3", name: "Полный комплекс растяжки", sets: 1, duration: 1200, rest: 0, tip: "20 минут. Плавно, без форсирования." },
+          ]
+        },
+        {
+          day: 3, type: "endurance", label: "Выносливость",
+          exercises: [
+            { id: "w8e1", name: "AMRAP финал: 12 минут", sets: 1, duration: 720, rest: 0, tip: "Тот же формат, что в неделе 7: 3 берпи + 5 приседаний + 10 скалолазов. Сравни с прошлым AMRAP." },
+            { id: "w8e2", name: "Победный круг: ходьба", sets: 1, duration: 300, rest: 0, tip: "Ты закончил подготовку. В четверг — додзё." },
+          ]
+        },
+        { day: 4, type: "rest", label: "Отдых", exercises: [] },
+        {
+          day: 5, type: "strength", label: "Сила",
+          exercises: [
+            { id: "w8s5", name: "Лёгкая поддерживающая тренировка", sets: 3, reps: 8, rest: 60, tip: "Отжимания + приседания + мост. Не форсируй. Сохраняй форму, не строй новую." },
+          ]
+        },
+        {
+          day: 6, type: "flexibility", label: "Растяжка",
+          exercises: [
+            { id: "w8f4", name: "Мягкая растяжка (поддерживающая)", sets: 1, duration: 900, rest: 0, tip: "15 минут. Без максимума, комфортно. Тело готовится к занятию." },
+          ]
+        },
+        { day: 7, type: "rest", label: "Отдых — завтра додзё 🥋", exercises: [] },
+      ]
+    },
+  ]
+};
+
+// ─── STATE ─────────────────────────────────────────────────
+const state = {
+  currentWeek: 0,          // 0-indexed
+  completedDays: {},        // key: "w-d" => true
+  currentWorkout: null,     // { week, day, exercises: [] }
+  completedExercises: new Set(),
+  sessionStart: null,
+};
+
+// load from localStorage
+try {
+  const saved = JSON.parse(localStorage.getItem('kpp_state') || '{}');
+  if (saved.completedDays) state.completedDays = saved.completedDays;
+  if (saved.currentWeek !== undefined) state.currentWeek = saved.currentWeek;
+} catch(e) {}
+
+function save() {
+  localStorage.setItem('kpp_state', JSON.stringify({
+    completedDays: state.completedDays,
+    currentWeek: state.currentWeek,
+  }));
+}
+
+// ─── UTILS ─────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+function exParams(ex) {
+  if (ex.isMax) return 'До отказа';
+  if (ex.duration && ex.sets > 1) return `${ex.sets} × ${ex.duration} сек`;
+  if (ex.duration) return `${ex.duration} сек`;
+  if (ex.reps) return `${ex.sets > 1 ? ex.sets + ' × ' : ''}${ex.reps} повт.${ex.note ? ' ' + ex.note : ''}`;
+  return '';
+}
+
+function typeClass(type) {
+  return { strength: 'strength', flexibility: 'flexibility', endurance: 'endurance' }[type] || '';
+}
+
+function typeLabel(type) {
+  return { strength: 'Сила', flexibility: 'Растяжка', endurance: 'Выносливость', rest: 'Отдых' }[type] || type;
+}
+
+function dayKey(w, d) { return `${w}-${d}`; }
+
+function totalWorkoutDays() {
+  return PROGRAM.weeks.reduce((acc, w) => acc + w.days.filter(d => d.type !== 'rest').length, 0);
+}
+function completedWorkoutCount() {
+  return Object.keys(state.completedDays).length;
+}
+
+// ─── SCREENS ───────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ─── HOME SCREEN ───────────────────────────────────────────
+function renderHome() {
+  const week = PROGRAM.weeks[state.currentWeek];
+  const totalDone = completedWorkoutCount();
+  const total = totalWorkoutDays();
+  const pct = Math.round(totalDone / total * 100);
+  const circum = 2 * Math.PI * 35;
+
+  // hero
+  $('hero-eyebrow').textContent = `Неделя ${state.currentWeek + 1} из ${PROGRAM.weeks.length}`;
+  $('hero-meta').textContent = `${totalDone} из ${total} тренировок выполнено`;
+
+  // ring
+  $('ring-pct').textContent = pct + '%';
+  $('ring-fill').style.strokeDashoffset = circum * (1 - pct / 100);
+  $('ring-theme').textContent = week.theme;
+  $('ring-week').textContent = `Неделя ${week.week}`;
+  const weekDone = week.days.filter(d => state.completedDays[dayKey(state.currentWeek, d.day - 1)] && d.type !== 'rest').length;
+  const weekTotal = week.days.filter(d => d.type !== 'rest').length;
+  $('ring-days-done').textContent = `${weekDone} из ${weekTotal} этой недели`;
+
+  // week chips
+  const nav = $('weeks-nav');
+  nav.innerHTML = '';
+  PROGRAM.weeks.forEach((w, i) => {
+    const chip = document.createElement('button');
+    chip.className = 'week-chip' + (i === state.currentWeek ? ' active' : '');
+    chip.textContent = `Нед ${w.week}: ${w.theme}`;
+    chip.addEventListener('click', () => {
+      state.currentWeek = i;
+      save();
+      renderHome();
+    });
+    nav.appendChild(chip);
+  });
+
+  // days grid
+  const grid = $('days-grid');
+  grid.innerHTML = '';
+  week.days.forEach((d, i) => {
+    const pill = document.createElement('div');
+    pill.className = 'day-pill';
+    pill.dataset.type = d.type;
+    const isDone = !!state.completedDays[dayKey(state.currentWeek, i)];
+    if (isDone) pill.classList.add('done');
+
+    // find "current" = first not-done non-rest
+    pill.innerHTML = `
+      <span class="day-pill-label">${d.type === 'rest' ? '–' : d.label.slice(0,3)}</span>
+      <span class="day-pill-num">${d.day}</span>
+    `;
+
+    if (d.type !== 'rest') {
+      pill.addEventListener('click', () => openWorkout(state.currentWeek, i));
+    }
+    grid.appendChild(pill);
+  });
+
+  // mark current day
+  const firstNotDone = week.days.findIndex((d, i) => d.type !== 'rest' && !state.completedDays[dayKey(state.currentWeek, i)]);
+  if (firstNotDone !== -1) grid.children[firstNotDone].classList.add('current');
+}
+
+// ─── WORKOUT SCREEN ────────────────────────────────────────
+function openWorkout(weekIdx, dayIdx) {
+  const week = PROGRAM.weeks[weekIdx];
+  const day = week.days[dayIdx];
+  if (day.type === 'rest') return;
+
+  state.currentWorkout = { weekIdx, dayIdx, day };
+  state.completedExercises = new Set();
+  state.sessionStart = Date.now();
+
+  $('workout-title').textContent = `День ${day.day}: ${typeLabel(day.type)}`;
+  $('workout-subtitle').textContent = `Неделя ${week.week} · ${week.theme}`;
+  const badge = $('workout-type-badge');
+  badge.textContent = typeLabel(day.type);
+  badge.className = 'type-badge ' + typeClass(day.type);
+
+  renderExercises(day);
+  showScreen('screen-workout');
+}
+
+function renderExercises(day) {
+  const list = $('exercise-list');
+  list.innerHTML = '';
+
+  if (!day.exercises || day.exercises.length === 0) {
+    list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--sub)">День отдыха. Восстанавливайся.</div>';
+    return;
+  }
+
+  day.exercises.forEach((ex, i) => {
+    const card = document.createElement('div');
+    card.className = 'ex-card';
+    card.id = `ex-${i}`;
+
+    const timerBtn = (ex.duration && !ex.isMax) ? `<button class="btn-timer-inline" data-idx="${i}" style="margin-top:8px;font-size:12px;padding:5px 12px;border-radius:20px;background:rgba(200,168,75,.12);color:var(--accent);border:1px solid rgba(200,168,75,.25);">▶ Таймер</button>` : '';
+
+    card.innerHTML = `
+      <div class="ex-check"><span class="ex-check-mark">✓</span></div>
+      <div class="ex-content">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-params">${exParams(ex)}</div>
+        ${ex.note ? `<div class="ex-note">${ex.note}</div>` : ''}
+        ${timerBtn}
+        ${ex.tip ? `<div class="ex-tip">${ex.tip}</div>` : ''}
+      </div>
+    `;
+
+    // toggle complete
+    card.addEventListener('click', (e) => {
+      if (e.target.classList.contains('btn-timer-inline')) return;
+      card.classList.toggle('completed');
+      card.classList.toggle('expanded');
+      if (card.classList.contains('completed')) {
+        state.completedExercises.add(i);
+      } else {
+        state.completedExercises.delete(i);
+        card.classList.add('expanded');
+      }
+      updateWorkoutProgress(day);
+    });
+
+    // timer button
+    const timerBtnEl = card.querySelector('.btn-timer-inline');
+    if (timerBtnEl) {
+      timerBtnEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openTimer(ex, i);
+      });
+    }
+
+    list.appendChild(card);
+  });
+
+  updateWorkoutProgress(day);
+}
+
+function updateWorkoutProgress(day) {
+  const total = day.exercises.length;
+  const done = state.completedExercises.size;
+  const pct = total > 0 ? done / total * 100 : 0;
+  $('workout-progress-fill').style.width = pct + '%';
+  $('btn-complete').disabled = done < total;
+}
+
+$('btn-back').addEventListener('click', () => {
+  showScreen('screen-home');
+  renderHome();
+});
+
+$('btn-complete').addEventListener('click', () => {
+  if (!state.currentWorkout) return;
+  const { weekIdx, dayIdx } = state.currentWorkout;
+  state.completedDays[dayKey(weekIdx, dayIdx)] = true;
+  save();
+
+  // auto-advance week if all days done
+  const week = PROGRAM.weeks[weekIdx];
+  const allDone = week.days.every((d, i) => d.type === 'rest' || state.completedDays[dayKey(weekIdx, i)]);
+  if (allDone && weekIdx < PROGRAM.weeks.length - 1) {
+    state.currentWeek = weekIdx + 1;
+    save();
+  }
+
+  showDone();
+});
+
+// ─── DONE SCREEN ───────────────────────────────────────────
+function showDone() {
+  const { day } = state.currentWorkout;
+  const elapsed = Math.round((Date.now() - state.sessionStart) / 1000);
+  const exCount = day.exercises.length;
+  const emojis = { strength: '💪', flexibility: '🤸', endurance: '🏃', rest: '😴' };
+
+  $('done-emoji').textContent = emojis[day.type] || '🥋';
+  $('done-title').textContent = 'Тренировка завершена';
+
+  const tips = {
+    strength: 'Сила строится повторением. Записывай ощущения — через месяц будет не узнать.',
+    flexibility: 'Растяжка — это терпение. Каждый миллиметр заработан.',
+    endurance: 'Сердце стало чуть сильнее. Так и работает прогресс.',
+  };
+  $('done-sub').textContent = tips[day.type] || '';
+
+  $('done-stats').innerHTML = `
+    <div class="done-stat">
+      <div class="done-stat-val">${exCount}</div>
+      <div class="done-stat-lbl">упражнений</div>
+    </div>
+    <div class="done-stat">
+      <div class="done-stat-val">${formatTime(elapsed)}</div>
+      <div class="done-stat-lbl">времени</div>
+    </div>
+    <div class="done-stat">
+      <div class="done-stat-val">${completedWorkoutCount()}</div>
+      <div class="done-stat-lbl">всего сессий</div>
+    </div>
+  `;
+
+  showScreen('screen-done');
+}
+
+$('btn-done-home').addEventListener('click', () => {
+  showScreen('screen-home');
+  renderHome();
+});
+
+// ─── TIMER ─────────────────────────────────────────────────
+let timerState = {
+  active: false,
+  paused: false,
+  currentSet: 0,
+  totalSets: 0,
+  timeLeft: 0,
+  totalTime: 0,
+  isRest: false,
+  restTime: 0,
+  ex: null,
+  interval: null,
+  exIdx: null,
+};
+
+const CIRCUM = 2 * Math.PI * 90; // 565.5
+
+function openTimer(ex, exIdx) {
+  clearInterval(timerState.interval);
+  timerState = {
+    active: false,
+    paused: true,
+    currentSet: 1,
+    totalSets: ex.sets,
+    timeLeft: ex.duration,
+    totalTime: ex.duration,
+    isRest: false,
+    restTime: ex.rest || 30,
+    ex,
+    interval: null,
+    exIdx,
+  };
+
+  updateTimerUI();
+  $('timer-overlay').classList.add('open');
+}
+
+function updateTimerUI() {
+  const { ex, currentSet, totalSets, timeLeft, totalTime, isRest } = timerState;
+
+  $('timer-ex-name').textContent = ex.name;
+  $('timer-ex-params').textContent = exParams(ex);
+  $('timer-time').textContent = formatTime(timeLeft);
+  $('timer-phase').textContent = isRest ? 'отдых' : 'работа';
+  $('timer-set-info').innerHTML = `Подход <strong>${currentSet}</strong> из <strong>${totalSets}</strong>`;
+  $('timer-tip').textContent = ex.tip || '';
+
+  const arc = $('timer-ring-arc');
+  arc.className = 'timer-ring-arc' + (isRest ? ' rest-phase' : '');
+  const used = 1 - timeLeft / totalTime;
+  arc.style.strokeDashoffset = CIRCUM * used;
+
+  $('btn-timer-play').textContent = timerState.paused ? '▶' : '⏸';
+}
+
+$('btn-timer-play').addEventListener('click', () => {
+  if (timerState.paused) {
+    timerState.paused = false;
+    timerState.active = true;
+    $('btn-timer-play').textContent = '⏸';
+    timerState.interval = setInterval(timerTick, 1000);
+  } else {
+    timerState.paused = true;
+    clearInterval(timerState.interval);
+    $('btn-timer-play').textContent = '▶';
+  }
+});
+
+function timerTick() {
+  timerState.timeLeft--;
+
+  if (timerState.timeLeft <= 0) {
+    // phase ended
+    if (!timerState.isRest) {
+      // work done → start rest or next set
+      if (timerState.currentSet < timerState.totalSets) {
+        timerState.isRest = true;
+        timerState.timeLeft = timerState.restTime;
+        timerState.totalTime = timerState.restTime;
+      } else {
+        // all sets done
+        clearInterval(timerState.interval);
+        timerState.active = false;
+        timerState.paused = true;
+        timerState.timeLeft = 0;
+        updateTimerUI();
+        // mark exercise done after short delay
+        setTimeout(() => {
+          closeTimer();
+          // mark the exercise card as complete
+          const card = document.getElementById(`ex-${timerState.exIdx}`);
+          if (card && !card.classList.contains('completed')) card.click();
+        }, 600);
+        return;
+      }
+    } else {
+      // rest done → next set
+      timerState.isRest = false;
+      timerState.currentSet++;
+      timerState.timeLeft = timerState.ex.duration;
+      timerState.totalTime = timerState.ex.duration;
+    }
+  }
+
+  updateTimerUI();
+}
+
+$('btn-timer-skip').addEventListener('click', () => {
+  clearInterval(timerState.interval);
+  timerState.paused = true;
+  timerState.timeLeft = 0;
+  timerTick(); // advance phase
+  if (timerState.paused) return;
+  timerState.interval = setInterval(timerTick, 1000);
+});
+
+$('btn-timer-close').addEventListener('click', closeTimer);
+
+function closeTimer() {
+  clearInterval(timerState.interval);
+  timerState.active = false;
+  $('timer-overlay').classList.remove('open');
+}
+
+// ─── INIT ──────────────────────────────────────────────────
+renderHome();
+
+// register SW
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
